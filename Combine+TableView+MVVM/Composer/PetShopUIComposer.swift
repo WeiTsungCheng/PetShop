@@ -9,8 +9,8 @@ import Foundation
 
 final class PetShopUIComposer {
     
-    public static func petShopComposedWith() -> PetShopViewController {
-        let vm = PetShopViewModel()
+    public static func petShopComposedWith(service: FetchProduct) -> PetShopViewController {
+        let vm = PetShopViewModel(service: service)
         let vc = PetShopViewController(viewModel: vm)
         return vc
     }

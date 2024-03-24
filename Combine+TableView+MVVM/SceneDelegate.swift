@@ -20,8 +20,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.makeKeyAndVisible()
     }
     
+    let service = ProductService()
     private func makeRootViewController() -> UIViewController {
-        let vc = PetShopUIComposer.petShopComposedWith()
+        let vc = PetShopUIComposer.petShopComposedWith(service: service)
         return vc
     }
     
