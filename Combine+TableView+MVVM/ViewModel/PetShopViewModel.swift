@@ -36,13 +36,14 @@ class PetShopViewModel {
                     return Just([]).eraseToAnyPublisher()
                 }
                 return self.service.fetch()
+                    .handleEvents(receiveCompletion: {_ in 
+                        reloadTableViewSubject.send(())
+                    })
                     .catch { _ in Just([]) }
                     .eraseToAnyPublisher()
             }
-            .sink { products in
-                setProductsSubject.send(products)
-                reloadTableViewSubject.send(())
-            }
+            .subscribe(setProductsSubject)
+            
             .store(in: &cancellable)
         
         return Output(setProductsPublisher: setProductsSubject.eraseToAnyPublisher(), reloadTableView: reloadTableViewSubject.eraseToAnyPublisher())
