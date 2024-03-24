@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import Combine
 
 final class PetShopViewController: UIViewController {
     
@@ -22,11 +23,11 @@ final class PetShopViewController: UIViewController {
         return tbv
     }()
     
-    var tableModel: [ProductCellController] = [] {
-        didSet {
-            tableView.reloadData()
-        }
-    }
+    var tableModel: [ProductCellController] = []
+    
+    private var cancellable = Set<AnyCancellable>()
+    
+    private let viewDidLoadSubject = PassthroughSubject<Void, Never>()
     
     var viewModel: PetShopViewModel
     init(viewModel: PetShopViewModel) {
@@ -42,15 +43,8 @@ final class PetShopViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         
-        let products: [Product] = Product.collection
-        
-        let cellControllers = products.map { product in
-            let vm = ProductCellViewModel(model: product)
-            let vc = ProductCellController(viewModel: vm)
-            return vc
-        }
-        
-        self.tableModel = cellControllers
+        bind()
+        viewDidLoadSubject.send(())
         
     }
     
@@ -58,7 +52,6 @@ final class PetShopViewController: UIViewController {
         title = "Pet Shop"
         view.backgroundColor = .white
         view.addSubview(tableView)
-        
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Reset", image: nil, target: self, action: #selector(reset))
         
         tableView.snp.makeConstraints { make in
@@ -72,6 +65,27 @@ final class PetShopViewController: UIViewController {
     
     @objc func reset() {
         
+    }
+    
+    private func bind() {
+        let input = PetShopViewModel.Input(productsPublisher: viewDidLoadSubject.eraseToAnyPublisher())
+        let output = viewModel.transform(input: input)
+        
+        output.setProductsPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [unowned self] products in
+                self.tableModel = products.map({ product in
+                    let vm = ProductCellViewModel(model: product)
+                    let vc = ProductCellController(viewModel: vm)
+                    return vc
+                })
+                
+            }.store(in: &cancellable)
+        
+        output.reloadTableView.receive(on: DispatchQueue.main)
+            .sink {  [unowned self] () in
+                self.tableView.reloadData()
+            }.store(in: &cancellable)
     }
 
 }
