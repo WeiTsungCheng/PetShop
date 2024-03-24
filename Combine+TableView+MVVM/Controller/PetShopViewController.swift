@@ -100,12 +100,10 @@ extension PetShopViewController: UITableViewDelegate {
 extension PetShopViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        
         return tableModel.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
         return cellController(forRowAt: indexPath).view(in: tableView, at: indexPath)
     }
     
@@ -113,6 +111,13 @@ extension PetShopViewController: UITableViewDataSource {
         return tableModel[indexPath.row]
     }
 
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+      return String(format: "Number of product: %d", 100)
+    }
+    
+    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+      return String(format: "Total cost: $%d", 1000)
+    }
     
 }
 
