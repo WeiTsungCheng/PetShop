@@ -65,6 +65,7 @@ class ProductTableViewCell: UITableViewCell {
     var stepper: UIStepper = {
         let stp = UIStepper()
         stp.value = 0.0
+        stp.minimumValue = 0.0
         return stp
     }()
     
