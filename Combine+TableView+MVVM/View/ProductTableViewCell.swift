@@ -108,6 +108,10 @@ class ProductTableViewCell: UITableViewCell {
             make.width.equalTo(40)
         }
         
+        stepperContainerView.snp.makeConstraints { make in
+            make.width.equalTo(65)
+        }
+        
         heartButton.snp.makeConstraints { make in
             make.width.equalTo(40)
         }
@@ -125,7 +129,6 @@ class ProductTableViewCell: UITableViewCell {
         
         stepperContainerView.addSubview(stepper)
         stepper.snp.makeConstraints { make in
-            make.width.equalTo(65)
             make.centerX.centerY.equalToSuperview()
         }
     }
