@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import Combine
 
 class ProductCellViewModel {
     
@@ -16,7 +17,7 @@ class ProductCellViewModel {
         self.model = model
     }
     
-    var quantity: Int = 0
+    var quantity: Double = 0.0
     
     var isLiked: Bool = false
     
