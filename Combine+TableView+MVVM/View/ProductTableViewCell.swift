@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import Combine
 
 class ProductTableViewCell: UITableViewCell {
     
@@ -72,9 +73,20 @@ class ProductTableViewCell: UITableViewCell {
     var heartButton: UIButton = {
         let btn = UIButton()
         btn.setImage(UIImage(systemName: "heart"), for: .normal)
+        btn.setImage(UIImage(systemName: "heart.fill"), for: .selected)
         btn.tintColor = .red
         return btn
     }()
+    
+    private let quantitySubject = PassthroughSubject<Double, Never>()
+    var quantityPublisher: AnyPublisher<Double, Never> {
+        quantitySubject.eraseToAnyPublisher()
+    }
+    
+    private let heartSubject = PassthroughSubject<Bool, Never>()
+    var heartPublisher: AnyPublisher<Bool, Never> {
+        heartSubject.eraseToAnyPublisher()
+    }
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -88,6 +100,14 @@ class ProductTableViewCell: UITableViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    var cancellable = Set<AnyCancellable>()
+
+    
+    override func prepareForReuse() {
+      super.prepareForReuse()
+      cancellable = Set<AnyCancellable>()
+    }
+    
     
     func setupUI() {
         
@@ -135,10 +155,26 @@ class ProductTableViewCell: UITableViewCell {
     
     func setAction() {
         
+        stepper.addAction(UIAction(handler: { [weak self] _ in
+            guard let self = self else { return }
+            quantitySubject.send(self.stepper.value)
+            
+        }), for: .touchUpInside)
+        
+        heartButton.addAction(UIAction(handler: { [weak self] _ in
+            guard let self = self else { return }
+            let isSelected = heartButton.isSelected
+            heartButton.isSelected = !isSelected
+            heartSubject.send(!isSelected)
+
+        }), for: .touchUpInside)
+        
     }
+    
     
     func configure(product: Product) {
         productImageView.image = UIImage(systemName: product.imageName)
         productInfoLabel.text = "Pet:\(product.name)\nPrice:\(product.price)"
     }
+    
 }

@@ -9,17 +9,16 @@ import Foundation
 import UIKit
 import Combine
 
-class ProductCellViewModel {
-    
+final class ProductCellViewModel {
+
     private let model: Product
     
     init(model: Product) {
         self.model = model
     }
     
-    var quantity: Double = 0.0
-    
-    var isLiked: Bool = false
+    @Published var quantity: Double = 0.0
+    @Published var isLiked: Bool = false
     
     var name: String {
         return model.name
