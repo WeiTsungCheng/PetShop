@@ -76,6 +76,12 @@ final class ProductCellController {
         
     }
     
+    func cancelLoad() {
+        releaseCellForReuse()
+    }
     
+    private func releaseCellForReuse() {
+        cell = nil
+    }
     
 }

@@ -67,6 +67,7 @@ final class PetShopViewController: UIViewController {
     }
     
     @objc func reset() {
+        
     }
     
     private func bind() {
@@ -99,9 +100,9 @@ final class PetShopViewController: UIViewController {
                 let totalCount = productDic.reduce(0.0, { $0 + $1.value })
                 let totalCost = productDic.reduce(0.0, { $0 + ($1.value * Double($1.key.price)) })
                 self?.result = (totalCount: Int(totalCount), totalCost: Int(totalCost))
-            
+                
                 // Mark: cause problem
-//                self?.tableView.reloadData()
+                self?.tableView.reloadData()
             }
             .store(in: &cancellable)
     }
@@ -133,9 +134,19 @@ extension PetShopViewController: UITableViewDataSource {
         return controller.view(in: tableView)
     }
     
+    func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        let cell = cellController(forRowAt: indexPath)
+        cell.cancelLoad()
+    }
+    
     private func cellController(forRowAt indexPath: IndexPath) -> ProductCellController {
         return tableModel[indexPath.row]
     }
+}
+
+
+extension PetShopViewController {
+    
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         return String(format: "Number of product: %d", result.totalCount)
@@ -146,4 +157,3 @@ extension PetShopViewController: UITableViewDataSource {
     }
     
 }
-

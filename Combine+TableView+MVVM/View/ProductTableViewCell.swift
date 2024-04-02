@@ -101,13 +101,12 @@ class ProductTableViewCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     var cancellable = Set<AnyCancellable>()
-
+    
     
     override func prepareForReuse() {
-      super.prepareForReuse()
-      cancellable = Set<AnyCancellable>()
+        super.prepareForReuse()
+        cancellable = Set<AnyCancellable>()
     }
-    
     
     func setupUI() {
         
@@ -154,20 +153,18 @@ class ProductTableViewCell: UITableViewCell {
     }
     
     func setAction() {
-        
-        stepper.addAction(UIAction(handler: { [weak self] _ in
-            guard let self = self else { return }
-            quantitySubject.send(self.stepper.value)
-            
-        }), for: .touchUpInside)
-        
-        heartButton.addAction(UIAction(handler: { [weak self] _ in
-            guard let self = self else { return }
-            let isSelected = heartButton.isSelected
-            heartButton.isSelected = !isSelected
-            heartSubject.send(!isSelected)
-
-        }), for: .touchUpInside)
+        stepper.addTarget(self, action: #selector(tapStepper), for: .touchUpInside)
+        heartButton.addTarget(self, action: #selector(tapButton), for: .touchUpInside)
+    }
+    
+    @objc private func tapStepper(_ stepper: UIStepper) {
+        quantitySubject.send(stepper.value)
+    }
+    
+    @objc private func tapButton(_ button: UIButton) {
+        let isSelected = button.isSelected
+        button.isSelected = !isSelected
+        heartSubject.send(!isSelected)
     }
     
     
