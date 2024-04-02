@@ -8,10 +8,11 @@
 import Foundation
 import Combine
 
-class PetShopViewModel {
+final class PetShopViewModel {
     
     struct Input {
         let productsPublisher: AnyPublisher<Void, Never>
+        let cellEventPublisher: AnyPublisher<ProductCellEvent, Never>
     }
     
     struct Output {
@@ -19,7 +20,9 @@ class PetShopViewModel {
         let reloadTableView: AnyPublisher<Void, Never>
     }
     
-    private var cancellable = Set<AnyCancellable>()
+    var cancellable = Set<AnyCancellable>()
+    
+    @Published var cart: [Product: Double] = [:]
     
     let service: FetchProduct
     init(service: FetchProduct) {
@@ -29,24 +32,35 @@ class PetShopViewModel {
     func transform(input: Input) -> Output {
         let setProductsSubject = PassthroughSubject<[Product], Never>()
         let reloadTableViewSubject = PassthroughSubject<Void, Never>()
-
+        
         input.productsPublisher
             .flatMap { [weak self] _ -> AnyPublisher<[Product], Never> in
                 guard let self = self else {
                     return Just([]).eraseToAnyPublisher()
                 }
                 return self.service.fetch()
-                    .handleEvents(receiveCompletion: {_ in 
+                    .handleEvents(receiveCompletion: { _ in
                         reloadTableViewSubject.send(())
                     })
                     .catch { _ in Just([]) }
                     .eraseToAnyPublisher()
             }
             .subscribe(setProductsSubject)
-            
             .store(in: &cancellable)
         
-        return Output(setProductsPublisher: setProductsSubject.eraseToAnyPublisher(), reloadTableView: reloadTableViewSubject.eraseToAnyPublisher())
+        input.cellEventPublisher
+            .sink { [weak self] event in
+                switch event {
+                case let .quantityChanged(value, product):
+                    self?.cart[product] = value
+                case .heartDidTap:
+                    break
+                }
+            }
+            .store(in: &cancellable)
+        
+        return Output(setProductsPublisher: setProductsSubject.eraseToAnyPublisher(), reloadTableView: reloadTableViewSubject.eraseToAnyPublisher()
+        )
     }
     
 }

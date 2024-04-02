@@ -29,6 +29,10 @@ final class PetShopViewController: UIViewController {
     
     private let viewDidLoadSubject = PassthroughSubject<Void, Never>()
     
+    private let cellEventSubject = PassthroughSubject<ProductCellEvent, Never>()
+    
+    private var result: (totalCount: Int, totalCost: Int) = (0,0)
+    
     var viewModel: PetShopViewModel
     init(viewModel: PetShopViewModel) {
         self.viewModel = viewModel
@@ -42,7 +46,6 @@ final class PetShopViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        
         bind()
         viewDidLoadSubject.send(())
         
@@ -64,11 +67,13 @@ final class PetShopViewController: UIViewController {
     }
     
     @objc func reset() {
-        
     }
     
     private func bind() {
-        let input = PetShopViewModel.Input(productsPublisher: viewDidLoadSubject.eraseToAnyPublisher())
+        let input = PetShopViewModel.Input(productsPublisher: viewDidLoadSubject.eraseToAnyPublisher(),
+                                           cellEventPublisher: cellEventSubject.eraseToAnyPublisher()
+        )
+        
         let output = viewModel.transform(input: input)
         
         output.setProductsPublisher
@@ -82,16 +87,29 @@ final class PetShopViewController: UIViewController {
                 
             }.store(in: &cancellable)
         
-        output.reloadTableView.receive(on: DispatchQueue.main)
-            .sink {  [unowned self] () in
+        output.reloadTableView
+            .receive(on: DispatchQueue.main)
+            .sink { [unowned self] () in
                 self.tableView.reloadData()
             }.store(in: &cancellable)
+        
+        viewModel.$cart
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] productDic in
+                let totalCount = productDic.reduce(0.0, { $0 + $1.value })
+                let totalCost = productDic.reduce(0.0, { $0 + ($1.value * Double($1.key.price)) })
+                self?.result = (totalCount: Int(totalCount), totalCost: Int(totalCost))
+            
+                // Mark: cause problem
+//                self?.tableView.reloadData()
+            }
+            .store(in: &cancellable)
     }
-
+    
 }
- 
-extension PetShopViewController: UITableViewDelegate {
 
+extension PetShopViewController: UITableViewDelegate {
+    
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 80
     }
@@ -104,19 +122,27 @@ extension PetShopViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        return cellController(forRowAt: indexPath).view(in: tableView)
+        
+        let controller = cellController(forRowAt: indexPath)
+        controller.eventPublisher
+            .sink { [weak self] event in
+                self?.cellEventSubject.send(event)
+            }
+            .store(in: &cancellable)
+        
+        return controller.view(in: tableView)
     }
     
     private func cellController(forRowAt indexPath: IndexPath) -> ProductCellController {
         return tableModel[indexPath.row]
     }
-
+    
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-      return String(format: "Number of product: %d", 100)
+        return String(format: "Number of product: %d", result.totalCount)
     }
     
     func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-      return String(format: "Total cost: $%d", 1000)
+        return String(format: "Total cost: $%d", result.totalCost)
     }
     
 }

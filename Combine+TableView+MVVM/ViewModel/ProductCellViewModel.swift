@@ -11,25 +11,29 @@ import Combine
 
 final class ProductCellViewModel {
 
-    private let model: Product
+    private let _model: Product
+    var model: Product {
+        return _model
+    }
     
     init(model: Product) {
-        self.model = model
+        self._model = model
     }
     
     @Published var quantity: Double = 0.0
     @Published var isLiked: Bool = false
     
     var name: String {
-        return model.name
+        return _model.name
     }
     
     var price: Int {
-        return model.price
+        return _model.price
     }
     
     var imageName: String {
-        return model.imageName
+        return _model.imageName
     }
+    
     
 }

@@ -168,7 +168,6 @@ class ProductTableViewCell: UITableViewCell {
             heartSubject.send(!isSelected)
 
         }), for: .touchUpInside)
-        
     }
     
     

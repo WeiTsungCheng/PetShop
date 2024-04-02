@@ -9,11 +9,20 @@ import Foundation
 import Combine
 import UIKit
 
+enum ProductCellEvent {
+    case quantityChanged(value: Double, product: Product)
+    case heartDidTap(value: Bool, product: Product)
+}
+
 final class ProductCellController {
     private let viewModel: ProductCellViewModel
     private var cell: ProductTableViewCell?
-    private var cancellable = Set<AnyCancellable>()
     var cancellable = Set<AnyCancellable>()
+    
+    private let eventSubject = PassthroughSubject<ProductCellEvent, Never>()
+    var eventPublisher: AnyPublisher<ProductCellEvent, Never> {
+      eventSubject.eraseToAnyPublisher()
+    }
     
     init(viewModel: ProductCellViewModel) {
         self.viewModel = viewModel
@@ -43,24 +52,27 @@ final class ProductCellController {
     }
     
     func bind(_ cell: ProductTableViewCell) {
-    
+
         cell.quantityPublisher
             .sink(receiveValue: { [weak self] count in
-                self?.viewModel.quantity = count
+                guard let self = self else { return }
+                self.viewModel.quantity = count
+                self.eventSubject.send(.quantityChanged(value: count, product: self.viewModel.model))
             })
-            .store(in: &cancellable)
+            .store(in: &cell.cancellable)
        
         cell.heartPublisher
             .sink { [weak self] isLike in
-                self?.viewModel.isLiked = isLike
+                guard let self = self else { return }
+                self.viewModel.isLiked = isLike
+                self.eventSubject.send(.heartDidTap(value: isLike, product: viewModel.model))
             }
-            .store(in: &cancellable)
+            .store(in: &cell.cancellable)
         
         viewModel.$quantity.sink { [weak cell] num in
             cell?.quantityLabel.text = "\(num)"
         }
-        .store(in: &cell.cancellable)
-        
+        .store(in: &cancellable)
         
     }
     
