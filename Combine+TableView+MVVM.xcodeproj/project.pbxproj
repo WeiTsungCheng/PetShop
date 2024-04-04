@@ -23,6 +23,9 @@
 		F4D246032BAEC6F1001C629E /* ProductCellController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D246022BAEC6F1001C629E /* ProductCellController.swift */; };
 		F4D246062BAFEC63001C629E /* PetShopUIComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D246052BAFEC63001C629E /* PetShopUIComposer.swift */; };
 		F4D246092BB01045001C629E /* ProductService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D246082BB01045001C629E /* ProductService.swift */; };
+		F4D656832BBF1222005621D4 /* OrderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D656822BBF1222005621D4 /* OrderViewController.swift */; };
+		F4D656852BBF125B005621D4 /* OrderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D656842BBF125B005621D4 /* OrderViewModel.swift */; };
+		F4D656872BBF213B005621D4 /* OrderUIComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D656862BBF213B005621D4 /* OrderUIComposer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +45,9 @@
 		F4D246022BAEC6F1001C629E /* ProductCellController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCellController.swift; sourceTree = "<group>"; };
 		F4D246052BAFEC63001C629E /* PetShopUIComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetShopUIComposer.swift; sourceTree = "<group>"; };
 		F4D246082BB01045001C629E /* ProductService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductService.swift; sourceTree = "<group>"; };
+		F4D656822BBF1222005621D4 /* OrderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderViewController.swift; sourceTree = "<group>"; };
+		F4D656842BBF125B005621D4 /* OrderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderViewModel.swift; sourceTree = "<group>"; };
+		F4D656862BBF213B005621D4 /* OrderUIComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderUIComposer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +128,7 @@
 			children = (
 				F4D245EA2BADC006001C629E /* PetShopViewModel.swift */,
 				F4D245FF2BAEC414001C629E /* ProductCellViewModel.swift */,
+				F4D656842BBF125B005621D4 /* OrderViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -131,6 +138,7 @@
 			children = (
 				F4D245DA2BADBE7A001C629E /* PetShopViewController.swift */,
 				F4D246022BAEC6F1001C629E /* ProductCellController.swift */,
+				F4D656822BBF1222005621D4 /* OrderViewController.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -139,6 +147,7 @@
 			isa = PBXGroup;
 			children = (
 				F4D246052BAFEC63001C629E /* PetShopUIComposer.swift */,
+				F4D656862BBF213B005621D4 /* OrderUIComposer.swift */,
 			);
 			path = Composer;
 			sourceTree = "<group>";
@@ -230,8 +239,11 @@
 			files = (
 				F4D245EB2BADC006001C629E /* PetShopViewModel.swift in Sources */,
 				F4D245FC2BAEA49B001C629E /* Product.swift in Sources */,
+				F4D656832BBF1222005621D4 /* OrderViewController.swift in Sources */,
 				F4D246062BAFEC63001C629E /* PetShopUIComposer.swift in Sources */,
+				F4D656872BBF213B005621D4 /* OrderUIComposer.swift in Sources */,
 				F4D245DB2BADBE7A001C629E /* PetShopViewController.swift in Sources */,
+				F4D656852BBF125B005621D4 /* OrderViewModel.swift in Sources */,
 				F4D246032BAEC6F1001C629E /* ProductCellController.swift in Sources */,
 				F4D246092BB01045001C629E /* ProductService.swift in Sources */,
 				F4D245D72BADBE7A001C629E /* AppDelegate.swift in Sources */,

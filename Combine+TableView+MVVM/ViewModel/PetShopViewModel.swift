@@ -33,6 +33,7 @@ final class PetShopViewModel {
     }
     
     var onProductLoad: (([Product]) -> Void)?
+    var presentOrderPage: ((Int, Int) -> Void)?
     
     func transform(input: AnyPublisher<Input, Never>) -> AnyPublisher<Output, Never> {
         

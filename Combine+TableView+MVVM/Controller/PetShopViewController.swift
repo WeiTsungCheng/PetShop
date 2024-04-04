@@ -91,8 +91,8 @@ final class PetShopViewController: UIViewController {
         
         viewModel.transform(input: output.eraseToAnyPublisher())
             .receive(on: DispatchQueue.main)
-            .sink { [unowned self] event in
-                switch event {
+            .sink { [unowned self] output in
+                switch output {
                 case .setProducts(let products):
                     viewModel.onProductLoad?(products)
                     
@@ -113,24 +113,7 @@ final class PetShopViewController: UIViewController {
     }
     
     @objc func goOrderPage() {
-        let vc = UIViewController()
-        
-        vc.modalPresentationStyle = .popover
-        vc.preferredContentSize = .init(width: 300, height: 300)  // the size of popover
-        vc.view.backgroundColor = .yellow
-
-        vc.popoverPresentationController?.sourceView = view   // the view of the popover
-        vc.popoverPresentationController?.sourceRect = CGRect(    // the place to display the popover
-            origin: CGPoint(
-                x: view.bounds.midX,
-                y: view.bounds.midY
-            ),
-            size: .zero
-        )
-        
-        vc.popoverPresentationController?.permittedArrowDirections = []
-        vc.popoverPresentationController?.delegate = self
-        present(vc, animated: true)
+        viewModel.presentOrderPage?(totalQuantities, totalCost)
     }
     
 }

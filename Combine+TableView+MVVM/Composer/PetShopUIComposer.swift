@@ -12,7 +12,16 @@ final class PetShopUIComposer {
     public static func petShopComposedWith(service: FetchProduct) -> PetShopViewController {
         let vm = PetShopViewModel(service: service)
         let vc = PetShopViewController(viewModel: vm)
+        
+        vm.presentOrderPage = { (quantity, cost) in
+            
+            let orderVC = OrderUIComposer.orderComposedWith(from: vc, quantity: quantity, cost: cost)
+            
+            vc.present(orderVC, animated: true)
+        }
+        
         vm.onProductLoad = adaptProductsToCellControllers(forwardingTo: vc)
+        
         return vc
     }
     
