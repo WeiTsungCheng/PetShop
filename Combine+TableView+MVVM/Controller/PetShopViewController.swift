@@ -19,8 +19,16 @@ final class PetShopViewController: UIViewController {
         tbv.showsVerticalScrollIndicator = false
         tbv.showsHorizontalScrollIndicator = false
         tbv.register(ProductTableViewCell.self, forCellReuseIdentifier: ProductTableViewCell.cellIdentifier())
-        
         return tbv
+    }()
+    
+    lazy var sendButton: UIButton = {
+        let btn = UIButton()
+        btn.backgroundColor = .systemBlue
+        btn.setTitle("Send", for: .normal)
+        btn.layer.cornerRadius = 10
+        btn.setTitleColor(.white, for: .normal)
+        return btn
     }()
     
     var tableModel: [ProductCellController] = []
@@ -48,6 +56,7 @@ final class PetShopViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setAction()
         bind()
         output.send(.viewDidLoad)
     }
@@ -55,11 +64,19 @@ final class PetShopViewController: UIViewController {
     private func setupUI() {
         title = "Pet Shop"
         view.backgroundColor = .white
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Reset", image: nil, target: self, action: #selector(reset))
         view.addSubview(tableView)
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Reset", image: nil, target: self, action: #selector(reset))
+        view.addSubview(sendButton)
         
         tableView.snp.makeConstraints { make in
             make.top.equalTo(view.snp.topMargin)
+            make.leading.equalTo(view.snp.leadingMargin)
+            make.trailing.equalTo(view.snp.trailingMargin)
+            make.bottom.equalTo(sendButton.snp.top)
+        }
+        
+        sendButton.snp.makeConstraints { make in
+            make.height.equalTo(66)
             make.leading.equalTo(view.snp.leadingMargin)
             make.trailing.equalTo(view.snp.trailingMargin)
             make.bottom.equalTo(view.snp.bottomMargin)
@@ -91,7 +108,33 @@ final class PetShopViewController: UIViewController {
             .store(in: &cancellable)
     }
     
+    func setAction() {
+        sendButton.addTarget(self, action: #selector(goOrderPage), for: .touchUpInside)
+    }
+    
+    @objc func goOrderPage() {
+        let vc = UIViewController()
+        
+        vc.modalPresentationStyle = .popover
+        vc.preferredContentSize = .init(width: 300, height: 300)  // the size of popover
+        vc.view.backgroundColor = .yellow
+
+        vc.popoverPresentationController?.sourceView = view   // the view of the popover
+        vc.popoverPresentationController?.sourceRect = CGRect(    // the place to display the popover
+            origin: CGPoint(
+                x: view.bounds.midX,
+                y: view.bounds.midY
+            ),
+            size: .zero
+        )
+        
+        vc.popoverPresentationController?.permittedArrowDirections = []
+        vc.popoverPresentationController?.delegate = self
+        present(vc, animated: true)
+    }
+    
 }
+
 
 extension PetShopViewController: UITableViewDelegate {
     
@@ -156,4 +199,12 @@ extension PetShopViewController {
         return String(format: "Total cost: $%d", totalCost)
     }
     
+}
+
+
+extension PetShopViewController: UIPopoverPresentationControllerDelegate {
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
+        return .none
+    }
 }

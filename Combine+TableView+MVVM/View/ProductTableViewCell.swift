@@ -81,7 +81,7 @@ final class ProductTableViewCell: UITableViewCell {
         btn.tintColor = .red
         return btn
     }()
-   
+    
     private let eventSubject = PassthroughSubject<ProductCellEvent, Never>()
     var eventPublisher: AnyPublisher<ProductCellEvent, Never> {
         eventSubject.eraseToAnyPublisher()
@@ -108,11 +108,10 @@ final class ProductTableViewCell: UITableViewCell {
     
     func setupUI() {
         
-        addSubview(horizontalStackView)
+        contentView.addSubview(horizontalStackView)
         horizontalStackView.snp.makeConstraints { make in
-            make.centerY.equalToSuperview()
-            make.leading.equalToSuperview().offset(12)
-            make.trailing.equalToSuperview().offset(-10)
+            make.leading.trailing.equalToSuperview()
+            make.centerX.centerY.equalToSuperview()
         }
         
         horizontalStackView.addArrangedSubview(quantityLabel)
@@ -121,11 +120,11 @@ final class ProductTableViewCell: UITableViewCell {
         horizontalStackView.addArrangedSubview(heartButton)
         
         quantityLabel.snp.makeConstraints { make in
-            make.width.equalTo(40)
+            make.width.height.equalTo(40)
         }
         
-        stepperContainerView.snp.makeConstraints { make in
-            make.width.equalTo(65)
+        productStackView.snp.makeConstraints { make in
+            make.width.equalTo(100)
         }
         
         heartButton.snp.makeConstraints { make in
@@ -134,10 +133,6 @@ final class ProductTableViewCell: UITableViewCell {
         
         productStackView.addArrangedSubview(productImageView)
         productStackView.addArrangedSubview(productInfoLabel)
-        
-        productStackView.snp.makeConstraints { make in
-            make.width.equalTo(100)
-        }
         
         productImageView.snp.makeConstraints { make in
             make.width.height.equalTo(40)
