@@ -13,6 +13,3 @@ extension UITableView {
         return dequeueReusableCell(withIdentifier: identifier) as! T
     }
 }
-
-
-

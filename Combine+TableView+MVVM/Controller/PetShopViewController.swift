@@ -24,14 +24,16 @@ final class PetShopViewController: UIViewController {
     }()
     
     var tableModel: [ProductCellController] = []
-    
     private var cancellable = Set<AnyCancellable>()
     
     private let viewDidLoadSubject = PassthroughSubject<Void, Never>()
     
-    private let cellEventSubject = PassthroughSubject<ProductCellEvent, Never>()
+    private var totalQuantities: Int = 0
+    private var totalCost: Int = 0
+    private var likedProductIds: Set<Int> = [] // [id]
+    private var productQuantities: [Int: Int] = [:] // [id: quantities]
     
-    private var result: (totalCount: Int, totalCost: Int) = (0,0)
+    private let output = PassthroughSubject<PetShopViewModel.Input, Never>()
     
     var viewModel: PetShopViewModel
     init(viewModel: PetShopViewModel) {
@@ -47,8 +49,7 @@ final class PetShopViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         bind()
-        viewDidLoadSubject.send(())
-        
+        output.send(.viewDidLoad)
     }
     
     private func setupUI() {
@@ -63,46 +64,29 @@ final class PetShopViewController: UIViewController {
             make.trailing.equalTo(view.snp.trailingMargin)
             make.bottom.equalTo(view.snp.bottomMargin)
         }
-        
     }
     
     @objc func reset() {
-        
+        output.send(.onResetButtonTap)
     }
     
     private func bind() {
-        let input = PetShopViewModel.Input(productsPublisher: viewDidLoadSubject.eraseToAnyPublisher(),
-                                           cellEventPublisher: cellEventSubject.eraseToAnyPublisher()
-        )
         
-        let output = viewModel.transform(input: input)
-        
-        output.setProductsPublisher
+        viewModel.transform(input: output.eraseToAnyPublisher())
             .receive(on: DispatchQueue.main)
-            .sink { [unowned self] products in
-                self.tableModel = products.map({ product in
-                    let vm = ProductCellViewModel(model: product)
-                    let vc = ProductCellController(viewModel: vm)
-                    return vc
-                })
-                
-            }.store(in: &cancellable)
-        
-        output.reloadTableView
-            .receive(on: DispatchQueue.main)
-            .sink { [unowned self] () in
-                self.tableView.reloadData()
-            }.store(in: &cancellable)
-        
-        viewModel.$cart
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] productDic in
-                let totalCount = productDic.reduce(0.0, { $0 + $1.value })
-                let totalCost = productDic.reduce(0.0, { $0 + ($1.value * Double($1.key.price)) })
-                self?.result = (totalCount: Int(totalCount), totalCost: Int(totalCost))
-                
-                // Mark: cause problem
-                self?.tableView.reloadData()
+            .sink { [unowned self] event in
+                switch event {
+                case .setProducts(let products):
+                    viewModel.onProductLoad?(products)
+                    
+                case let .updateView(totalQuantities, totalCost, likedProductIds, productQuantities):
+                    self.totalQuantities = totalQuantities
+                    self.totalCost = totalCost
+                    self.likedProductIds = likedProductIds
+                    self.productQuantities = productQuantities
+                    
+                    self.tableView.reloadData()
+                }
             }
             .store(in: &cancellable)
     }
@@ -124,16 +108,34 @@ extension PetShopViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let controller = cellController(forRowAt: indexPath)
-        controller.eventPublisher
-            .sink { [weak self] event in
-                self?.cellEventSubject.send(event)
-            }
-            .store(in: &cancellable)
+        // 順序 step 很重要, 否則將造成 cell 處理異常
+        // step 1: 找到對應的 CellController 與 Product
+        let cellController = cellController(forRowAt: indexPath)
+        let product = cellController.product
         
-        return controller.view(in: tableView)
+        // step 2: 根據現有資料產生新的 CellViewModel
+        let newQuantity = productQuantities[product.id] ?? 0
+        let newIsLiked = likedProductIds.contains(product.id)
+        let newCellViewModel = ProductCellViewModel(model: product)
+        
+        newCellViewModel.quantity = newQuantity
+        newCellViewModel.isLiked = newIsLiked
+        
+        // step 3: 將原本的 CellViewModel 換成新的
+        cellController.setViewModel(viewModel: newCellViewModel)
+        
+        // step 4: 更新 Cell 畫面
+        let cell = cellController.view(in: tableView)
+        
+        cell.eventPublisher
+            .sink { [weak self] event in
+                self?.output.send(.onProductCellEvent(event: event, product: product))
+            }
+            .store(in: &cell.cancellable)
+        
+        return cell
     }
-    
+
     func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         let cell = cellController(forRowAt: indexPath)
         cell.cancelLoad()
@@ -144,16 +146,14 @@ extension PetShopViewController: UITableViewDataSource {
     }
 }
 
-
 extension PetShopViewController {
     
-    
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return String(format: "Number of product: %d", result.totalCount)
+        return String(format: "Number of product: %d", totalQuantities)
     }
     
     func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        return String(format: "Total cost: $%d", result.totalCost)
+        return String(format: "Total cost: $%d", totalCost)
     }
     
 }

@@ -9,7 +9,12 @@ import UIKit
 import SnapKit
 import Combine
 
-class ProductTableViewCell: UITableViewCell {
+enum ProductCellEvent {
+    case quantityDidChange(value: Int)
+    case heartDidTap
+}
+
+final class ProductTableViewCell: UITableViewCell {
     
     var horizontalStackView: UIStackView = {
         let stv = UIStackView()
@@ -73,19 +78,13 @@ class ProductTableViewCell: UITableViewCell {
     var heartButton: UIButton = {
         let btn = UIButton()
         btn.setImage(UIImage(systemName: "heart"), for: .normal)
-        btn.setImage(UIImage(systemName: "heart.fill"), for: .selected)
         btn.tintColor = .red
         return btn
     }()
-    
-    private let quantitySubject = PassthroughSubject<Double, Never>()
-    var quantityPublisher: AnyPublisher<Double, Never> {
-        quantitySubject.eraseToAnyPublisher()
-    }
-    
-    private let heartSubject = PassthroughSubject<Bool, Never>()
-    var heartPublisher: AnyPublisher<Bool, Never> {
-        heartSubject.eraseToAnyPublisher()
+   
+    private let eventSubject = PassthroughSubject<ProductCellEvent, Never>()
+    var eventPublisher: AnyPublisher<ProductCellEvent, Never> {
+        eventSubject.eraseToAnyPublisher()
     }
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -102,7 +101,6 @@ class ProductTableViewCell: UITableViewCell {
     }
     var cancellable = Set<AnyCancellable>()
     
-    
     override func prepareForReuse() {
         super.prepareForReuse()
         cancellable = Set<AnyCancellable>()
@@ -111,7 +109,6 @@ class ProductTableViewCell: UITableViewCell {
     func setupUI() {
         
         addSubview(horizontalStackView)
-        
         horizontalStackView.snp.makeConstraints { make in
             make.centerY.equalToSuperview()
             make.leading.equalToSuperview().offset(12)
@@ -157,20 +154,13 @@ class ProductTableViewCell: UITableViewCell {
         heartButton.addTarget(self, action: #selector(tapButton), for: .touchUpInside)
     }
     
-    @objc private func tapStepper(_ stepper: UIStepper) {
-        quantitySubject.send(stepper.value)
+    @objc private func tapStepper(_ sender: UIStepper) {
+        let value = Int(sender.value)
+        eventSubject.send(.quantityDidChange(value: value))
     }
     
-    @objc private func tapButton(_ button: UIButton) {
-        let isSelected = button.isSelected
-        button.isSelected = !isSelected
-        heartSubject.send(!isSelected)
-    }
-    
-    
-    func configure(product: Product) {
-        productImageView.image = UIImage(systemName: product.imageName)
-        productInfoLabel.text = "Pet:\(product.name)\nPrice:\(product.price)"
+    @objc private func tapButton(_ sender: UIButton) {
+        eventSubject.send(.heartDidTap)
     }
     
 }

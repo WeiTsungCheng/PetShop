@@ -10,57 +10,91 @@ import Combine
 
 final class PetShopViewModel {
     
-    struct Input {
-        let productsPublisher: AnyPublisher<Void, Never>
-        let cellEventPublisher: AnyPublisher<ProductCellEvent, Never>
+    enum Input {
+        case viewDidLoad
+        case onProductCellEvent(event: ProductCellEvent, product: Product)
+        case onResetButtonTap
     }
     
-    struct Output {
-        let setProductsPublisher: AnyPublisher<[Product], Never>
-        let reloadTableView: AnyPublisher<Void, Never>
+    enum Output {
+        case setProducts(products: [Product])
+        case updateView(totalQuantities: Int, totalCost: Int, likedProductIds: Set<Int>, productQuantities: [Int: Int])
     }
     
+    private let output = PassthroughSubject<PetShopViewModel.Output, Never>()
     var cancellable = Set<AnyCancellable>()
     
-    @Published var cart: [Product: Double] = [:]
+    private var cart: [Product: Int] = [:]
+    private var likes: [Product: Bool] = [:]
     
     let service: FetchProduct
     init(service: FetchProduct) {
         self.service = service
     }
     
-    func transform(input: Input) -> Output {
-        let setProductsSubject = PassthroughSubject<[Product], Never>()
-        let reloadTableViewSubject = PassthroughSubject<Void, Never>()
+    var onProductLoad: (([Product]) -> Void)?
+    
+    func transform(input: AnyPublisher<Input, Never>) -> AnyPublisher<Output, Never> {
         
-        input.productsPublisher
-            .flatMap { [weak self] _ -> AnyPublisher<[Product], Never> in
-                guard let self = self else {
-                    return Just([]).eraseToAnyPublisher()
-                }
-                return self.service.fetch()
-                    .handleEvents(receiveCompletion: { _ in
-                        reloadTableViewSubject.send(())
-                    })
-                    .catch { _ in Just([]) }
-                    .eraseToAnyPublisher()
-            }
-            .subscribe(setProductsSubject)
-            .store(in: &cancellable)
-        
-        input.cellEventPublisher
-            .sink { [weak self] event in
+        input.sink { [unowned self] event in
+            switch event {
+            case .viewDidLoad:
+                
+                service.fetch()
+                    .receive(on: DispatchQueue.main)
+                    .sink { completion in
+                        print(completion)
+                    } receiveValue: { [unowned self] products in
+                        self.output.send(.setProducts(products: products))
+                        
+                        self.output.send(.updateView(totalQuantities: totalQuantities, totalCost: totalCost, likedProductIds: likedProductIds, productQuantities: productQuantities))
+                    }
+                    .store(in: &cancellable)
+                
+            case .onResetButtonTap:
+                cart.removeAll()
+                likes.removeAll()
+                output.send(.updateView(totalQuantities: totalQuantities, totalCost: totalCost, likedProductIds: likedProductIds, productQuantities: productQuantities))
+                
+            case .onProductCellEvent(let event, let product):
                 switch event {
-                case let .quantityChanged(value, product):
-                    self?.cart[product] = value
+                case .quantityDidChange(let value):
+                    cart[product] = value
+                    output.send(.updateView(totalQuantities: totalQuantities, totalCost: totalCost, likedProductIds: likedProductIds, productQuantities: productQuantities))
                 case .heartDidTap:
-                    break
+                    if let value = likes[product] {
+                        likes[product] = !value
+                    } else {
+                        likes[product] = true
+                    }
+                    output.send(.updateView(totalQuantities: totalQuantities, totalCost: totalCost, likedProductIds: likedProductIds, productQuantities: productQuantities))
                 }
             }
-            .store(in: &cancellable)
+        }
+        .store(in: &cancellable)
         
-        return Output(setProductsPublisher: setProductsSubject.eraseToAnyPublisher(), reloadTableView: reloadTableViewSubject.eraseToAnyPublisher()
-        )
+        return output.eraseToAnyPublisher()
+    }
+
+    private var totalQuantities: Int {
+        cart.reduce(0, { $0 + $1.value })
+    }
+    
+    private var totalCost: Int {
+        cart.reduce(0, { $0 + ($1.value * $1.key.price )})
+    }
+    
+    private var likedProductIds: Set<Int> {
+        let array = likes.filter { $0.value == true }.map { $0.key.id }
+        return Set(array)
+    }
+    
+    private var productQuantities: [Int: Int] {
+        var temp = [Int: Int]()
+        cart.forEach { key, value in
+            temp[key.id] = value
+        }
+        return temp
     }
     
 }

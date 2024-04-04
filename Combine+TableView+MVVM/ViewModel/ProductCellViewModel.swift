@@ -20,8 +20,9 @@ final class ProductCellViewModel {
         self._model = model
     }
     
-    @Published var quantity: Double = 0.0
-    @Published var isLiked: Bool = false
+    var quantity: Int = 0
+    
+    var isLiked: Bool = false
     
     var name: String {
         return _model.name
@@ -34,6 +35,4 @@ final class ProductCellViewModel {
     var imageName: String {
         return _model.imageName
     }
-    
-    
 }

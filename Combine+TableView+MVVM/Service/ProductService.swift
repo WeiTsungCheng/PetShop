@@ -12,7 +12,7 @@ protocol FetchProduct {
     func fetch() -> AnyPublisher<[Product], Error>
 }
 
-class ProductService: FetchProduct {
+final class ProductService: FetchProduct {
     
     func fetch() -> AnyPublisher<[Product], Error> {
         
